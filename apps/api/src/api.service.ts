@@ -4,13 +4,16 @@ import { CreateGameSessionDto } from '@app/common/dto/create-game-session.dto';
 import { PlayerDto } from '@app/common/dto/player.dto';
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { tap } from 'rxjs';
+import { catchError, tap } from 'rxjs';
+import { GeneralRpcException } from '@app/common/exceptions/GeneralRpcException';
+import { GeneralHttpException } from '@app/common/exceptions/GeneralHttpException';
 
 @Injectable()
 export class ApiService {
   constructor(
     @Inject(USERS_SERVICE) private readonly usersClient: ClientProxy,
-  ) {}
+  ) {
+  }
 
   async createPlayer(playerPayload: PlayerDto) {
     return this.usersClient
@@ -21,6 +24,10 @@ export class ApiService {
   async startGameSession(gameSessionPayload: CreateGameSessionDto) {
     return this.usersClient
       .send(START_GAME, gameSessionPayload)
-      .pipe(tap((res) => res));
+      .pipe(
+        tap((res) => res),
+        catchError((error: GeneralRpcException) => {
+        throw new GeneralHttpException(error.getErrorData());
+      }));
   }
 }

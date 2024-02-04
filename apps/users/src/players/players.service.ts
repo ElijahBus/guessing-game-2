@@ -3,6 +3,9 @@ import { PlayerRepository } from './repositories/player.repository';
 import { DEFAULT_SCORE } from './constant';
 import { JoinedPlayersService } from '../joined-player/joined-player.service';
 import { IPlayer } from 'libs/common/interfaces/player.interface';
+import { GeneralRpcException } from '@app/common/exceptions/GeneralRpcException';
+import { PLAYER_SESSION_STARTED } from '../../../../libs/common/utilities/error-codes';
+import { PlayerDto } from '@app/common/dto/player.dto';
 
 @Injectable()
 export class PlayersService {
@@ -10,7 +13,13 @@ export class PlayersService {
     private readonly playerRepository: PlayerRepository,
     private readonly joinedPlayersService: JoinedPlayersService,
   ) {}
-  async create(playerPayload: IPlayer) {
+  async create(playerPayload: PlayerDto) {
+    // Check if any session has started
+    const sessionStarted = true;
+    if (sessionStarted) {
+      throw new GeneralRpcException(PLAYER_SESSION_STARTED)
+    }
+
     try {
       // this needs to be changed
       console.log('playerPayload', playerPayload);
